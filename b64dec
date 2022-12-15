@@ -1,0 +1,60 @@
+#!/usr/bin/env python3
+
+from base64 import b64decode
+from pathlib import Path
+from sys import argv, exit, stderr, stdin, stdout
+
+
+def warn(*args: object, **kwargs: object) -> None:
+    print(*args, **kwargs, file=stderr)
+
+
+def usage(args: list[str]) -> None:
+    warn(f"""\
+Usage:
+    {args[0]} IN_FILE_B64 [OUT_FILE]
+Using "-" as a filename will either take input from STDIN or write output to STDOUT accordingly
+If OUT_FILE is missing, defaults to STDOUT\
+""")
+
+
+def decode(data_b64: str) -> bytes:
+    return b64decode(data_b64 + "==")  # Fix possible missing padding
+
+
+def main(args: list[str]) -> None:
+    if len(args) < 2:
+        warn("Missing input file name")
+        usage(args)
+        exit(1)
+
+    _, filename_in, *rest = args
+    if len(rest) > 0:
+        filename_out = rest[0]
+    else:
+        filename_out = "-"
+
+    if filename_in == "-":
+        data_b64 = stdin.read()
+    else:
+        file_in = Path(filename_in)
+        if file_in.exists():
+            data_b64 = file_in.read_text()
+        else:
+            data_b64 = filename_in
+
+    data = decode(data_b64)
+
+    if filename_out == "-":
+        count = stdout.buffer.write(data)
+        file_out_name = "STDOUT"
+    else:
+        file_out = Path(filename_out)
+        count = file_out.write_bytes(data)
+        file_out_name = file_out.resolve().absolute()
+
+    warn(f"Done! Wrote {count} bytes to {file_out_name}")
+
+
+if __name__ == "__main__":
+    main(argv)
