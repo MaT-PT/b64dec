@@ -28,13 +28,16 @@ def decode_b64(data_b64: str) -> bytes:
 def main() -> None:
     parser = ArgumentParser(description="Decode base-64 input from a file or STDIN.", formatter_class=NewlineHelpFormatter)
     parser.add_argument("file_in", nargs="?", default="-",
-                        help="Input base-64 file, defaults to STDIN if - or unspecified.\nIf filename is invalid or points to a non-existing file, it is interpreted as base-64 data.")
+                        help="Input base-64 file, defaults to STDIN if - or unspecified.\n"
+                             "If filename is invalid or points to a non-existing file, it is interpreted as base-64 data.")
     parser.add_argument("file_out", nargs="?", type=FileType(mode="wb"), default=stdout.buffer,
                         help="Output file, defaults to STDOUT if - or unspecified.")
+    parser.add_argument("-s", "--silent", action="store_true", help="Don't output status information")
     args = parser.parse_args()
 
     filename_in: str = args.file_in
     file_out: BufferedWriter = args.file_out
+    is_silent: bool = args.silent
 
     if filename_in == "-":
         data_b64 = stdin.read()
@@ -44,13 +47,15 @@ def main() -> None:
             data_b64 = file_in.read_text()
         else:
             data_b64 = filename_in
-            warn("Note: interpreting first arg as base 64 data since it isn't an existing file name")
+            if not is_silent:
+                warn("Note: interpreting first arg as base 64 data since it isn't an existing file name")
 
     data = decode_b64(data_b64)
 
     count = file_out.write(data)
 
-    warn(f"Done! Wrote {count} bytes to {file_out.name}")
+    if not is_silent:
+        warn(f"Done! Wrote {count} bytes to {file_out.name}")
 
 
 if __name__ == "__main__":
