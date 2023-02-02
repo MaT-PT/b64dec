@@ -53,7 +53,12 @@ def main() -> None:
         data_b64 = stdin.read()
     else:
         file_in = Path(filename_in)
-        if file_in.exists():
+        try:
+            file_exists = file_in.exists()
+        except OSError:
+            file_exists = False
+
+        if file_exists:
             data_b64 = file_in.read_text()
         else:
             data_b64 = filename_in
