@@ -14,6 +14,7 @@ class NewlineHelpFormatter(HelpFormatter):
 
     def _split_lines(self, text: str, width: int) -> list[str]:
         import textwrap
+
         return [l for lines in (textwrap.wrap(line, width) for line in text.splitlines()) for l in lines]
 
 
@@ -27,11 +28,20 @@ def decode_b64(data_b64: str) -> bytes:
 
 def main() -> None:
     parser = ArgumentParser(description="Decode base-64 input from a file or STDIN.", formatter_class=NewlineHelpFormatter)
-    parser.add_argument("file_in", nargs="?", default="-",
-                        help="Input base-64 file, defaults to STDIN if - or unspecified.\n"
-                             "If filename is invalid or points to a non-existing file, it is interpreted as base-64 data.")
-    parser.add_argument("file_out", nargs="?", type=FileType(mode="wb"), default=stdout.buffer,
-                        help="Output file, defaults to STDOUT if - or unspecified.")
+    parser.add_argument(
+        "file_in",
+        nargs="?",
+        default="-",
+        help="Input base-64 file, defaults to STDIN if - or unspecified.\n"
+        "If filename is invalid or points to a non-existing file, it is interpreted as base-64 data.",
+    )
+    parser.add_argument(
+        "file_out",
+        nargs="?",
+        type=FileType(mode="wb"),
+        default=stdout.buffer,
+        help="Output file, defaults to STDOUT if - or unspecified.",
+    )
     parser.add_argument("-s", "--silent", action="store_true", help="Don't output status information")
     args = parser.parse_args()
 
